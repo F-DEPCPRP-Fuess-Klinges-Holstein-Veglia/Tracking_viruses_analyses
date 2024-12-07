@@ -1,0 +1,36 @@
+####STEP 1
+#!/bin/bash
+
+#fastploop used for read processing -- conda activate fastp prior to running
+#99_DT28_OFAV_1D_June_2022_S73_R1_001.fastq.gz
+for x in *_R1_*.fastq.gz;
+do	echo "starting with "$x" at "$(date)"" 
+	R2=$(echo "$x" | sed 's/_R1_/_R2_/g'); 
+	echo ""$x","$R2""; 
+	base=$(echo "$x" | awk -F "_" '{print $1"_"$2"_"$3"_"$4"_"$5}'); 
+	echo ""$base""
+	fastp -i $x -I $R2 -o "$base".clean.R1.fq -O "$base".clean.R2.fq --detect_adapter_for_pe --average_qual 25 -q 20 -l 35 -y -Y 30 -g -x -n 2 -c --overrepresentation_analysis --html "$base".fastp.html --json "$base".fastp.json --thread 20
+done
+####STEP 2
+#!bin/bash
+
+#bbnorm loop 
+#DT26_OFAV_2H_June_2022.clean.R1.fq
+for x in *clean.R1.fq;
+do	echo "Starting with "$x" at "$(date)"" 
+	R2=$(echo "$x" | sed 's/R1.fq/R2.fq/g') 
+	base=$(echo "$x" | awk -F ".clean" '{print $1}'); 
+	echo ""$x","$R2","$base"" 
+	bbnorm.sh in1="$x" in2="$R2" out1="$base".filt.norm.R1.fq.gz out2="$base".filt.norm.R2.fq.gz target=100 min=1 threads=28 -eoom
+done
+###Step3
+#!/bin/bash
+
+for x in *.filt.norm.R1.fq.gz;
+do	R2=$(echo $x | sed 's/.R1./.R2./g')
+	base=$(echo $x | awk -F ".filt." '{print $1}')
+	echo "$x, $R2, $base"
+	spades.py --rna -1 $x -2 $R2 -o "$base"_spades -m 495 -t 30
+  spades.py --rnaviral -1 $x -2 $R2 -o "$base"_spades -m 495 -t 30
+	singularity exec -e /home/.progs/trinityrnaseq.v2.15.2.simg Trinity --seqType fq --no_normalize_reads --max_memory 490G --left $x --right $R2 --output "$base"_trinity --CPU 3 --full_cleanup --min_contig_length 500
+done
