@@ -34,3 +34,10 @@ do	R2=$(echo $x | sed 's/.R1./.R2./g')
   spades.py --rnaviral -1 $x -2 $R2 -o "$base"_spades -m 495 -t 30
 	singularity exec -e /home/.progs/trinityrnaseq.v2.15.2.simg Trinity --seqType fq --no_normalize_reads --max_memory 490G --left $x --right $R2 --output "$base"_trinity --CPU 3 --full_cleanup --min_contig_length 500
 done
+###Step4
+for x in *all.fasta;
+do	echo "starting with $x"
+	base=$(echo "$x" |awk -F "_" '{print $1}')
+	echo "$base"
+	python $deep6_path -i "$x" -l 250 -m $deep6_models_path -o "$base"_dsix
+done
