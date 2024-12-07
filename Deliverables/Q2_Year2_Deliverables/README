@@ -1,0 +1,4 @@
+This directory contains:
+  1.bashcode.txt -> bash code and program commands used to produce RNA seq assembly files and virus sequence identification.
+  2.Rcode.R -> R code for the analysis and the production of the figure for comparison of virus sequence recovery across SPAdes assembly algorithms.
+  3.rnavsrnaviralspades_comp.csv -> csv files containing counts information for each of the assemblies across the two algorithms. file was used with the provided R code.
